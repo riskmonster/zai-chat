@@ -521,7 +521,7 @@ components:
         code:
           type: string
           minLength: 1
-          description: One-time code from uni.login or wx.login
+          description: One-time code from Taro.login or wx.login
     RefreshTokenRequest:
       type: object
       additionalProperties: false

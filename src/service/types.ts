@@ -538,6 +538,6 @@ export type UsersMeUsingGetResponses = {
 };
 
 export type WxLoginRequest = {
-  /** One-time code from uni.login or wx.login */
+  /** One-time code from Taro.login or wx.login */
   code: string;
 };

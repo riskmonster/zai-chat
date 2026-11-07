@@ -123,8 +123,8 @@ MVP 使用两个底部 tab：
 ### FR-01 登录与会话恢复
 
 - 首次登录前展示隐私政策和用户协议，用户拒绝时提供只读说明页，不进入对话。
-- 使用 `uni.login({ provider: 'weixin' })` 获得 code，并调用 FastAPI `POST /api/v1/auth/wx-login`。
-- 客户端只提交 `{ code }` 字符串，不得直接把 `uni.login` 的整个结果对象传给接口。
+- 使用 `Taro.login()` 获得 code，并调用 FastAPI `POST /api/v1/auth/wx-login`。
+- 客户端只提交 `{ code }` 字符串，不得直接把 `Taro.login()` 的整个结果对象传给接口。
 - 后端使用 code 换取 `openid`，签发本站 access token 和 refresh token。
 - 冷启动先恢复登录态；access token 失效时尝试刷新，刷新失败后清理状态并跳转登录页。
 - 不强制获取头像昵称；用户主动选择头像昵称时才保存。
@@ -165,7 +165,7 @@ MVP 使用两个底部 tab：
 ### 7.1 总体架构
 
 ```text
-uni-app / 微信小程序
+Taro 4 + React / 微信小程序
   -> HTTPS API + SSE（微信端 enableChunked，其他端安全降级）
 FastAPI
   -> 认证与用户服务
@@ -179,16 +179,16 @@ FastAPI
 PostgreSQL / Redis / 对象存储（P1）
 ```
 
-FastAPI 是唯一可信后端和模型网关。模型密钥、供应商地址、限流额度、内容安全策略均在服务端配置，禁止通过 `VITE_*` 进入客户端产物。
+FastAPI 是唯一可信后端和模型网关。模型密钥、供应商地址、限流额度、内容安全策略均在服务端配置，禁止通过 `TARO_APP_*` 进入客户端产物。
 
 ### 7.2 前端落地建议
 
-- 路由：使用 `definePage`，不手改 `src/pages.json`。
-- tabbar：只修改 `src/tabbar/config.ts`，改为“对话”和“我的”两项。
-- API：新增 `src/api/chat.ts`、`src/api/auth.ts`，统一走现有 `src/http/http.ts` 和拦截器。
+- 路由：使用 Taro 文件路由和 `definePageConfig`，不在生成目录中手写路由。
+- tabbar：修改 `src/app.config.ts` 与 `src/custom-tab-bar/`，保持“对话”和“我的”两项。
+- API：`src/api/` 负责业务操作，`src/service/` 是 OpenAPI 生成物，统一走 `src/services/openapi-request.ts`。
 - 流式请求：单独增加 SSE/chunk 适配层，不把普通 JSON 请求包装强行改造成流式。
-- 状态：新增 `src/store/chat.ts` 管理当前会话、临时消息和发送队列；token/user 继续使用现有 Pinia store。
-- 页面私有组件放在 `src/pages/chat/components/`，包括输入器、消息气泡、空态、消息操作。
+- 状态：`src/store/chat.ts` 管理当前会话、消息和运行状态；认证继续使用 Zustand。
+- 通用聊天组件放在 `src/components/chat/`，页面只订阅 selector 并派发用户意图。
 - 长文本和消息列表避免深层响应式包裹；历史消息分页加载，首屏不一次性渲染全部记录。
 
 微信端流式优先方案：
@@ -199,7 +199,7 @@ FastAPI 是唯一可信后端和模型网关。模型密钥、供应商地址、
 4. H5 使用基于 `fetch` 的流式读取；App 或不支持 chunk 的环境降级为轮询任务结果或等待完整响应。
 5. 所有 `wx.*` 调用放在 `#ifdef MP-WEIXIN` 中，其他平台提供安全分支。
 
-现有 `http.ts` 基于 `uni.request` 且按 JSON `data` 解析，不能直接承载 SSE；必须新增明确的流式适配器，避免破坏现有登录和普通请求。
+现有 `src/services/openapi-request.ts` 基于 `Taro.request`，只承载普通 JSON；流式能力由 `src/services/sse/` 独立承载。
 
 ### 7.3 FastAPI API 草案
 
@@ -302,12 +302,10 @@ class LLMProvider(Protocol):
 
 ## 8. 与现有工程的对应关系
 
-- 当前首页和“我的”仍是模板页，需要按本 PRD 替换。
-- 当前自定义 tabbar 为“首页/关于/我的”，需收敛为“对话/我的”。
-- 当前 `wxLogin` API 设计为 `{ code: string }`，但 token store 直接传入了 `uni.login` 结果对象，实施时必须修正为 `wxLogin({ code: result.code })`。
-- 当前不存在登录页，`toLoginPage` 跳转路径需与新增页面同步。
-- 当前 `http.ts` 只处理 JSON 完整响应，新增流式能力时不要破坏现有 401 刷新队列逻辑。
-- 当前碳图标存在生产构建加载警告，新 tabbar 图标必须在微信模拟器和真机验收后再上线，必要时改用本地稳定资源。
+- “对话”“我的”页面和自定义 tabbar 已落地，后续继续补齐真实接口闭环。
+- `wxLogin` 的 OpenAPI 契约为 `{ code: string }`，调用方必须使用 `Taro.login()` 返回的 code。
+- 普通 JSON 与 SSE 已分别由 `src/services/openapi-request.ts`、`src/services/sse/` 承载。
+- tabbar 使用本地 PNG 资源，发布前仍需在模拟器和真机验证。
 
 ## 9. 指标
 

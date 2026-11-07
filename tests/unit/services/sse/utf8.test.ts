@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { Utf8StreamDecoder } from './utf8'
+import { Utf8StreamDecoder } from '@/services/sse/utf8'
 
 describe('Utf8StreamDecoder', () => {
   it('decodes Chinese text split across chunks', () => {

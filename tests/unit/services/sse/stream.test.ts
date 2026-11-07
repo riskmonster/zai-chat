@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { streamRunEvents } from './index'
+import { streamRunEvents } from '@/services/sse'
 
 const { requestMock, task } = vi.hoisted(() => {
   const requestTask = {

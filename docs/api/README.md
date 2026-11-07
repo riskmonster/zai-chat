@@ -27,7 +27,7 @@
 }
 ```
 
-前端生成代码通过 `src/http/openapi.ts` 适配器解包 `data`。
+前端生成代码通过 `src/services/openapi-request.ts` 解包 `data`。
 
 ## 错误响应
 
@@ -81,9 +81,9 @@ pnpm.cmd contract:check
 
 - 输入：`docs/api/openapi.yaml`
 - 输出：`src/service/**`
-- 请求适配：`src/http/openapi.ts`
+- 请求适配：`src/services/openapi-request.ts`
 - 生成目录禁止手改
-- SSE 路径从普通生成代码中排除，由 `src/http/stream/` 手写适配
+- SSE 路径从普通生成代码中排除，由 `src/services/sse/` 手写适配
 
 ## 兼容性
 

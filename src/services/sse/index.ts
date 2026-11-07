@@ -47,6 +47,16 @@ export function streamRunEvents(options: StreamRunEventsOptions): StreamConnecti
         options.onError?.(new Error(`SSE HTTP ${response.statusCode}`))
         return
       }
+      try {
+        const remaining = decoder.flush()
+        if (remaining) {
+          parser.push(remaining).forEach(event => options.onEvent(event))
+        }
+      }
+      catch (error) {
+        options.onError?.(error instanceof Error ? error : new Error(String(error)))
+        return
+      }
       parser.flush().forEach(event => options.onEvent(event))
       options.onComplete?.()
     },

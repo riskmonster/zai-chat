@@ -1,0 +1,51 @@
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 28px;
+  background: var(--app-surface);
+}
+
+.conversation-list__item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.conversation-list__item:last-child {
+  border-bottom: 0;
+}
+
+.conversation-list__content {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conversation-list__title {
+  overflow: hidden;
+  color: var(--app-text);
+  font-size: 29px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-list__preview {
+  overflow: hidden;
+  color: var(--app-muted);
+  font-size: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-list__time {
+  flex-shrink: 0;
+  color: var(--app-muted);
+  font-size: 22px;
+}

@@ -5,11 +5,13 @@
 当前技术基线：
 
 - Taro 4.3.2
-- React 18
-- TypeScript
-- Sass
+- React 18.3.1
+- TypeScript 5.9.3
+- Sass 1.108.1
 - Taroify
 - Zustand
+- 构建 Vite 4.5.14
+- Vitest 5.1.0 + 测试 Vite 8.3.6
 - FastAPI + PostgreSQL（后端独立仓库）
 - OpenAPI 3.1 + SSE
 
@@ -24,6 +26,7 @@ pnpm dev:weapp
 
 ```bash
 pnpm build:weapp
+pnpm build:h5
 ```
 
 将微信开发者工具项目目录指向本仓库，`project.config.json` 中的 `miniprogramRoot` 为 `./dist/weapp`。
@@ -43,11 +46,17 @@ pnpm contract:check
 ## 验证
 
 ```bash
+pnpm contract:check
 pnpm typecheck
+pnpm test:typecheck
 pnpm lint
 pnpm test:run
+pnpm toolchain:check
 pnpm build:weapp
+pnpm build:h5
 ```
+
+小程序构建和测试使用两条隔离的 Vite 通道，详见 [ADR-0004](./docs/decisions/0004-toolchain-lanes.md)。
 
 ## 当前范围
 

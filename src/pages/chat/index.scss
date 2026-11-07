@@ -1,6 +1,6 @@
 .chat-list-page {
   min-height: 100vh;
-  padding: 48px 32px 180px;
+  padding: 48px 32px 240px;
   background: var(--app-bg);
 }
 
@@ -36,39 +36,33 @@
   margin-bottom: 56px;
 }
 
-.chat-list-empty {
-  padding: 40px 32px;
-  border: 1px solid var(--app-border);
-  border-radius: 28px;
-  background: var(--app-surface);
-}
-
-.chat-list-empty-title {
+.chat-list-status {
   display: block;
-  color: var(--app-text);
-  font-size: 32px;
-  font-weight: 600;
-}
-
-.chat-list-empty-copy {
-  display: block;
-  margin-top: 12px;
+  margin-bottom: 24px;
   color: var(--app-muted);
-  font-size: 26px;
-  line-height: 1.6;
+  font-size: 25px;
 }
 
-.chat-list-starters {
+.chat-list-error {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 32px;
-}
-
-.chat-list-starter {
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
   padding: 22px 24px;
   border-radius: 18px;
-  background: #eff4f2;
-  color: #23463e;
-  font-size: 27px;
+  background: #fff1f0;
+}
+
+.chat-list-error__copy {
+  color: #b42318;
+  font-size: 24px;
+  line-height: 1.5;
+}
+
+.chat-list-error__retry {
+  flex-shrink: 0;
+  color: var(--app-primary);
+  font-size: 24px;
+  font-weight: 600;
 }

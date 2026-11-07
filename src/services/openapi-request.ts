@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro'
 
 import { API_BASE_URL } from '@/config'
+import { AppError, toAppError } from '@/domain/errors'
 import { useAuthStore } from '@/store/auth'
 
 interface ApiResponse<T> {
@@ -53,18 +54,24 @@ export default async function request<T>(
   const requestUrl = appendQuery(`${API_BASE_URL}${url}`, params)
 
   const token = useAuthStore.getState().session?.accessToken
-  const response = await Taro.request<ApiResponse<UnwrapResponse<T>> | ApiErrorResponse>({
-    url: requestUrl,
-    method,
-    timeout: options.timeout || 60000,
-    data: method === 'GET' ? undefined : options.data,
-    header: {
-      Accept: 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.header,
-      ...options.headers,
-    },
-  })
+  let response
+  try {
+    response = await Taro.request<ApiResponse<UnwrapResponse<T>> | ApiErrorResponse>({
+      url: requestUrl,
+      method,
+      timeout: options.timeout || 60000,
+      data: method === 'GET' ? undefined : options.data,
+      header: {
+        Accept: 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.header,
+        ...options.headers,
+      },
+    })
+  }
+  catch (error) {
+    throw toAppError(error, 'NETWORK_ERROR')
+  }
 
   if (response.statusCode === 204) {
     return undefined as UnwrapResponse<T>
@@ -72,13 +79,74 @@ export default async function request<T>(
 
   if (response.statusCode < 200 || response.statusCode >= 300) {
     const body = response.data as ApiErrorResponse
-    throw new Error(body.message || `HTTP ${response.statusCode}`)
+    if (response.statusCode === 401) {
+      useAuthStore.getState().clearSession()
+    }
+    throw createResponseError(
+      response.statusCode,
+      body,
+      getHeader(response.header, 'retry-after'),
+    )
   }
 
   const body = response.data as ApiResponse<UnwrapResponse<T>>
   if (body.code !== 0) {
-    throw new Error(body.message || '请求失败')
+    throw new AppError({
+      code: 'REQUEST_FAILED',
+      message: body.message || '请求失败',
+      requestId: body.requestId,
+      statusCode: response.statusCode,
+    })
   }
 
   return body.data
+}
+
+function createResponseError(
+  statusCode: number,
+  body: ApiErrorResponse,
+  retryAfterHeader?: string,
+): AppError {
+  if (statusCode === 401) {
+    return new AppError({
+      code: body.code || 'AUTH_EXPIRED',
+      message: body.message || '登录已过期',
+      requestId: body.requestId,
+      statusCode,
+    })
+  }
+
+  if (statusCode === 429) {
+    const retryAfterSeconds = Number.parseInt(retryAfterHeader ?? '', 10)
+    return new AppError({
+      code: body.code || 'RATE_LIMITED',
+      message: body.message || '请求过于频繁，请稍后再试',
+      requestId: body.requestId,
+      statusCode,
+      retryAfterSeconds: Number.isFinite(retryAfterSeconds)
+        ? retryAfterSeconds
+        : undefined,
+      retryable: true,
+    })
+  }
+
+  return new AppError({
+    code: body.code || (statusCode >= 500 ? 'SERVER_ERROR' : 'REQUEST_FAILED'),
+    message: body.message || `HTTP ${statusCode}`,
+    requestId: body.requestId,
+    statusCode,
+    retryable: statusCode >= 500,
+  })
+}
+
+function getHeader(
+  headers: Record<string, string> | undefined,
+  name: string,
+): string | undefined {
+  if (!headers) {
+    return undefined
+  }
+  const target = name.toLowerCase()
+  const entry = Object.entries(headers).find(([key]) => key.toLowerCase() === target)
+  return entry?.[1]
 }

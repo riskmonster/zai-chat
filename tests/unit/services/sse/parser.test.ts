@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { SseParser } from './parser'
+import { SseParser } from '@/services/sse/parser'
 
 describe('SseParser', () => {
   it('parses an SSE event split across chunks', () => {
@@ -34,5 +34,27 @@ describe('SseParser', () => {
     const parser = new SseParser()
 
     expect(() => parser.push('data: {"sequence":1}\n\n')).toThrow('Invalid SSE event')
+  })
+
+  it('ignores duplicate sequence numbers', () => {
+    const parser = new SseParser()
+    const event = JSON.stringify({
+      sequence: 1,
+      type: 'delta',
+      runId: 'run_1',
+      messageId: 'msg_1',
+      data: { text: 'hello' },
+    })
+
+    expect(parser.push(`data: ${event}\n\n`)).toHaveLength(1)
+    expect(parser.push(`data: ${event}\n\n`)).toHaveLength(0)
+  })
+
+  it('rejects structurally invalid event data', () => {
+    const parser = new SseParser()
+
+    expect(() => parser.push(
+      'data: {"sequence":1,"type":"delta","runId":"run_1","data":{}}\n\n',
+    )).toThrow('Invalid SSE event')
   })
 })

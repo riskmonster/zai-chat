@@ -10,7 +10,7 @@ const executable = path.join(
   process.platform === 'win32' ? 'eslint.cmd' : 'eslint',
 )
 
-const result = spawnSync(executable, ['src', '--ext', '.ts,.tsx'], {
+const result = spawnSync(executable, ['src', 'tests', '--ext', '.ts,.tsx'], {
   cwd: rootDir,
   env: {
     ...process.env,
