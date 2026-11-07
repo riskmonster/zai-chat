@@ -1,0 +1,819 @@
+openapi: 3.1.0
+info:
+  title: AI Chat Mini Program API
+  version: 1.0.0
+  description: |
+    AI 聊天智能体微信小程序的后端公开契约。
+
+    普通 JSON 接口使用统一响应 envelope；SSE 接口使用
+    `text/event-stream`，事件定义见 `sse-events.md`。
+servers:
+  - url: https://api.example.com
+    description: Placeholder server, real domain is configured per environment
+tags:
+  - name: Auth
+  - name: Users
+  - name: Conversations
+  - name: Messages
+  - name: Runs
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/wx-login:
+    post:
+      tags: [Auth]
+      operationId: wxLogin
+      summary: Exchange a WeChat login code for an application session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WxLoginRequest'
+      responses:
+        '200':
+          description: Authenticated session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshAuthSession
+      summary: Refresh an expired access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Refreshed session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Revoke the current refresh token
+      responses:
+        '204':
+          description: Session revoked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      operationId: getCurrentUser
+      summary: Get the current user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/conversations:
+    get:
+      tags: [Conversations]
+      operationId: listConversations
+      summary: List conversations using cursor pagination
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Conversation page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags: [Conversations]
+      operationId: createConversation
+      summary: Create a conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationRequest'
+      responses:
+        '201':
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/conversations/{conversationId}:
+    parameters:
+      - $ref: '#/components/parameters/ConversationId'
+    get:
+      tags: [Conversations]
+      operationId: getConversation
+      summary: Get a conversation owned by the current user
+      responses:
+        '200':
+          description: Conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags: [Conversations]
+      operationId: updateConversation
+      summary: Rename a conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateConversationRequest'
+      responses:
+        '200':
+          description: Updated conversation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      tags: [Conversations]
+      operationId: deleteConversation
+      summary: Soft-delete a conversation
+      responses:
+        '204':
+          description: Conversation deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/conversations/{conversationId}/messages:
+    parameters:
+      - $ref: '#/components/parameters/ConversationId'
+    get:
+      tags: [Messages]
+      operationId: listMessages
+      summary: List messages using cursor pagination
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Message page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags: [Messages]
+      operationId: submitMessage
+      summary: Persist a user message and create a generation run
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageRequest'
+      responses:
+        '201':
+          description: Message and run created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendMessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/runs/{runId}:
+    parameters:
+      - $ref: '#/components/parameters/RunId'
+    get:
+      tags: [Runs]
+      operationId: getRun
+      summary: Get the authoritative state of a generation run
+      responses:
+        '200':
+          description: Run state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/runs/{runId}/events:
+    get:
+      tags: [Runs]
+      operationId: streamRunEvents
+      summary: Stream generation events using Server-Sent Events
+      description: |
+        This endpoint is excluded from the JSON request generator and must be
+        implemented by the dedicated streaming adapter.
+      x-codegen-exclude: true
+      x-sse-event-schema: ./sse-event.schema.json
+      x-sse-events: [meta, delta, usage, done, error, heartbeat]
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - name: after
+          in: query
+          required: false
+          description: Last sequence already processed by the client
+          schema:
+            type: integer
+            minimum: 0
+        - name: Last-Event-ID
+          in: header
+          required: false
+          description: Standard SSE resume identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SSE stream
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: no-cache
+            X-Accel-Buffering:
+              schema:
+                type: string
+                const: 'no'
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/runs/{runId}/cancel:
+    post:
+      tags: [Runs]
+      operationId: cancelRun
+      summary: Request cancellation of a generation run
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Updated run state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /api/v1/runs/{runId}/retry:
+    post:
+      tags: [Runs]
+      operationId: retryRun
+      summary: Create a new run from the original user message
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetryRunRequest'
+      responses:
+        '201':
+          description: New run created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque cursor returned by a previous page
+      schema:
+        type: string
+        maxLength: 512
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Stable key for retrying the same client write
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing, invalid, or expired authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Authenticated but not allowed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource does not exist or is not owned by the current user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Resource state conflict or duplicate idempotent request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequests:
+      description: Rate limit or token quota exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal error without provider or secret details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ApiResponseBase:
+      type: object
+      additionalProperties: false
+      required: [code, message, requestId]
+      properties:
+        code:
+          type: integer
+          description: Business result code, 0 means success
+          example: 0
+        message:
+          type: string
+          example: ok
+        requestId:
+          type: string
+          example: req_01J00000000000000000000000
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, requestId]
+      properties:
+        code:
+          type: string
+          description: Stable machine-readable error code
+          examples:
+            - AUTH_EXPIRED
+            - RATE_LIMITED
+            - MODEL_UNAVAILABLE
+        message:
+          type: string
+        requestId:
+          type: string
+    WxLoginRequest:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          description: One-time code from uni.login or wx.login
+    RefreshTokenRequest:
+      type: object
+      additionalProperties: false
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+    AuthSession:
+      type: object
+      additionalProperties: false
+      required:
+        - accessToken
+        - accessTokenExpiresIn
+        - refreshToken
+        - refreshTokenExpiresIn
+        - user
+      properties:
+        accessToken:
+          type: string
+        accessTokenExpiresIn:
+          type: integer
+          minimum: 1
+          description: Lifetime in seconds
+        refreshToken:
+          type: string
+        refreshTokenExpiresIn:
+          type: integer
+          minimum: 1
+          description: Lifetime in seconds
+        user:
+          $ref: '#/components/schemas/User'
+    AuthSessionResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/AuthSession'
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, nickname, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        nickname:
+          type: string
+          minLength: 1
+          maxLength: 64
+        avatarUrl:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [active, disabled]
+        createdAt:
+          type: string
+          format: date-time
+    UserResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/User'
+    CreateConversationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 80
+    UpdateConversationRequest:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 80
+    Conversation:
+      type: object
+      additionalProperties: false
+      required: [id, title, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        lastMessagePreview:
+          type: string
+          maxLength: 160
+        lastMessageAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ConversationResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Conversation'
+    ConversationPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Conversation'
+        nextCursor:
+          type: string
+          description: Omitted or null when there are no more items
+    ConversationPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/ConversationPage'
+    MessageContent:
+      type: object
+      additionalProperties: false
+      required: [type, text]
+      properties:
+        type:
+          type: string
+          enum: [text]
+        text:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    Message:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant, system, tool]
+        content:
+          $ref: '#/components/schemas/MessageContent'
+        status:
+          type: string
+          enum: [pending, streaming, completed, cancelled, failed]
+        errorCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    MessagePage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        nextCursor:
+          type: string
+          description: Omitted or null when there are no more items
+    MessagePageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/MessagePage'
+    SendMessageRequest:
+      type: object
+      additionalProperties: false
+      required: [clientMessageId, content, stream]
+      properties:
+        clientMessageId:
+          type: string
+          format: uuid
+        content:
+          $ref: '#/components/schemas/MessageContent'
+        stream:
+          type: boolean
+          default: true
+    SendMessageAccepted:
+      type: object
+      additionalProperties: false
+      required: [userMessage, assistantMessageId, runId]
+      properties:
+        userMessage:
+          $ref: '#/components/schemas/Message'
+        assistantMessageId:
+          type: string
+          format: uuid
+        runId:
+          type: string
+          format: uuid
+    SendMessageResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/SendMessageAccepted'
+    Run:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - conversationId
+        - userMessageId
+        - assistantMessageId
+        - status
+        - modelAlias
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        userMessageId:
+          type: string
+          format: uuid
+        assistantMessageId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, streaming, completed, cancelled, failed]
+        modelAlias:
+          type: string
+        errorCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    RunResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseBase'
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/Run'
+    RetryRunRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        modelAlias:
+          type: string
+          minLength: 1
+          maxLength: 64

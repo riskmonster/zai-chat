@@ -1,0 +1,74 @@
+.chat-list-page {
+  min-height: 100vh;
+  padding: 48px 32px 180px;
+  background: var(--app-bg);
+}
+
+.chat-list-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.chat-list-eyebrow {
+  color: var(--app-primary);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.chat-list-title {
+  color: var(--app-text);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.chat-list-description {
+  max-width: 620px;
+  color: var(--app-muted);
+  font-size: 28px;
+  line-height: 1.7;
+}
+
+.chat-list-actions {
+  margin-bottom: 56px;
+}
+
+.chat-list-empty {
+  padding: 40px 32px;
+  border: 1px solid var(--app-border);
+  border-radius: 28px;
+  background: var(--app-surface);
+}
+
+.chat-list-empty-title {
+  display: block;
+  color: var(--app-text);
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.chat-list-empty-copy {
+  display: block;
+  margin-top: 12px;
+  color: var(--app-muted);
+  font-size: 26px;
+  line-height: 1.6;
+}
+
+.chat-list-starters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.chat-list-starter {
+  padding: 22px 24px;
+  border-radius: 18px;
+  background: #eff4f2;
+  color: #23463e;
+  font-size: 27px;
+}
