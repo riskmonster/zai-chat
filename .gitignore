@@ -8,3 +8,4 @@ node_modules/
 *.local
 project.private.config.json
 *.log
+.agents/
