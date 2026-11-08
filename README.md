@@ -29,8 +29,8 @@ pnpm build:weapp
 pnpm build:h5
 ```
 
-将微信开发者工具项目目录指向本仓库，`project.config.json` 中的 `miniprogramRoot` 为 `./dist/weapp`。
-微信产物为 `dist/weapp`，H5 产物为 `dist/h5`，两者互不覆盖。
+将微信开发者工具项目目录指向本仓库，`project.config.json` 中的 `miniprogramRoot` 为
+`./dist/weapp`。微信产物为 `dist/weapp`，H5 产物为 `dist/h5`，两者互不覆盖。
 
 ## 接口契约
 
@@ -47,16 +47,23 @@ pnpm contract:check
 
 ```bash
 pnpm contract:check
+pnpm format:check
 pnpm typecheck
 pnpm test:typecheck
 pnpm lint
+pnpm lint:styles
 pnpm test:run
 pnpm toolchain:check
 pnpm build:weapp
 pnpm build:h5
 ```
 
-小程序构建和测试使用两条隔离的 Vite 通道，详见 [ADR-0004](./docs/decisions/0004-toolchain-lanes.md)。
+小程序构建和测试使用两条隔离的 Vite 通道，详见
+[ADR-0004](./docs/decisions/0004-toolchain-lanes.md)。
+
+静态检查覆盖 TypeScript 严格模式、类型感知 ESLint、架构边界、Vitest/Testing
+Library、SCSS、Prettier、Knip 和 Git hooks，详见
+[ADR-0005](./docs/decisions/0005-static-analysis.md)。
 
 ## 当前范围
 

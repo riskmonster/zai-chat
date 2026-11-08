@@ -1,0 +1,28 @@
+{
+  "src/*.{ts,tsx}": [
+    "eslint --fix --max-warnings 0 --no-inline-config --report-unused-disable-directives",
+    "prettier --write"
+  ],
+  "src/{custom-tab-bar,features,pages,shared}/**/*.{ts,tsx}": [
+    "eslint --fix --max-warnings 0 --no-inline-config --report-unused-disable-directives",
+    "prettier --write"
+  ],
+  "config/**/*.ts": [
+    "eslint --fix --max-warnings 0 --no-inline-config --report-unused-disable-directives",
+    "prettier --write"
+  ],
+  "types/**/*.d.ts": [
+    "eslint --fix --max-warnings 0 --no-inline-config --report-unused-disable-directives",
+    "prettier --write"
+  ],
+  "openapi-ts-request.config.ts": [
+    "eslint --fix --max-warnings 0 --no-inline-config --report-unused-disable-directives",
+    "prettier --write"
+  ],
+  "tests/**/*.{ts,tsx}": [
+    "eslint --fix --max-warnings 0 --no-inline-config --report-unused-disable-directives",
+    "prettier --write"
+  ],
+  "*.{scss,css}": ["stylelint --fix", "prettier --write"],
+  "*.{json,md,yml,yaml,mjs,js}": ["prettier --write"]
+}

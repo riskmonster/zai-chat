@@ -1,93 +1,66 @@
-import Button from '@taroify/core/button'
-import { Text, View } from '@tarojs/components'
-import Taro, { useDidShow } from '@tarojs/taro'
+import type { ReactElement } from 'react'
 
-import ChatEmptyState from '@/components/chat/ChatEmptyState'
-import ConversationList from '@/components/chat/ConversationList'
-import { useAuthStore } from '@/store/auth'
-import { useChatStore } from '@/store/chat'
+import { Button, Text, View } from '@/shared/ui/shell'
+
+import { ChatEmptyState, ConversationList } from '@/features/chat/public'
+
+import { CHAT_LIST_PAGE_COPY } from './chat-list-page.model'
+import { useChatListPage } from './useChatListPage'
 
 import './index.scss'
 
-const STARTERS = [
-  '帮我整理今天的计划',
-  '解释一个复杂概念',
-  '把这段文字改得更清晰',
-]
-
-export default function ChatListPage() {
-  const hasSession = useAuthStore(state => Boolean(state.session))
-  const conversations = useChatStore(state => state.conversations)
-  const conversationPhase = useChatStore(state => state.conversationPhase)
-  const conversationError = useChatStore(state => state.conversationError)
-  const loadConversations = useChatStore(state => state.loadConversations)
-  const openConversation = useChatStore(state => state.openConversation)
-
-  useDidShow(() => {
-    if (hasSession) {
-      void loadConversations()
-    }
-  })
-
-  const startNewConversation = (prompt?: string) => {
-    const query = prompt ? `?prompt=${encodeURIComponent(prompt)}` : ''
-    Taro.navigateTo({ url: `/pages/chat/detail${query}` })
-  }
-
-  const openHistoryConversation = (conversationId: string) => {
-    void openConversation(conversationId)
-    Taro.navigateTo({
-      url: `/pages/chat/detail?conversationId=${encodeURIComponent(conversationId)}`,
-    })
-  }
+export default function ChatListPage(): ReactElement {
+  const { model, suggestions, actions } = useChatListPage()
 
   return (
     <View className='chat-list-page'>
       <View className='chat-list-heading'>
-        <Text className='chat-list-eyebrow'>AI 助手</Text>
-        <Text className='chat-list-title'>今天想聊什么？</Text>
-        <Text className='chat-list-description'>
-          用最少的步骤开始一次对话，历史会话会在这里继续。
-        </Text>
+        <Text className='chat-list-eyebrow'>{CHAT_LIST_PAGE_COPY.eyebrow}</Text>
+        <Text className='chat-list-title'>{CHAT_LIST_PAGE_COPY.title}</Text>
+        <Text className='chat-list-description'>{CHAT_LIST_PAGE_COPY.description}</Text>
       </View>
 
       <View className='chat-list-actions'>
-        <Button block color='primary' onClick={() => startNewConversation()}>
-          开始新对话
+        <Button
+          block
+          color='primary'
+          onClick={() => {
+            actions.startNewConversation()
+          }}
+        >
+          {CHAT_LIST_PAGE_COPY.startConversation}
         </Button>
       </View>
 
-      {conversationPhase === 'loading'
-        ? <Text className='chat-list-status'>正在同步会话…</Text>
-        : null}
+      {model.conversationPhase === 'loading' ? (
+        <Text className='chat-list-status'>{CHAT_LIST_PAGE_COPY.loading}</Text>
+      ) : null}
 
-      {conversationError
-        ? (
-            <View className='chat-list-error'>
-              <Text className='chat-list-error__copy'>{conversationError.message}</Text>
-              <Text
-                className='chat-list-error__retry'
-                onClick={() => void loadConversations()}
-              >
-                重试
-              </Text>
-            </View>
-          )
-        : null}
+      {model.conversationError !== null && model.conversationError.length > 0 ? (
+        <View className='chat-list-error'>
+          <Text className='chat-list-error__copy'>{model.conversationError}</Text>
+          <Button
+            className='chat-list-error__retry'
+            variant='text'
+            size='small'
+            onClick={actions.reloadConversations}
+          >
+            {CHAT_LIST_PAGE_COPY.retry}
+          </Button>
+        </View>
+      ) : null}
 
-      {conversations.length > 0
-        ? (
-            <ConversationList
-              conversations={conversations}
-              onOpen={openHistoryConversation}
-            />
-          )
-        : (
-            <ChatEmptyState
-              suggestions={STARTERS}
-              onSelectSuggestion={startNewConversation}
-            />
-          )}
+      {model.conversations.length > 0 ? (
+        <ConversationList
+          conversations={model.conversations}
+          onOpen={actions.openHistoryConversation}
+        />
+      ) : (
+        <ChatEmptyState
+          suggestions={suggestions}
+          onSelectSuggestion={actions.startNewConversation}
+        />
+      )}
     </View>
   )
 }

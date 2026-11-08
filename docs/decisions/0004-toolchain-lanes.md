@@ -5,7 +5,8 @@
 
 ## 背景
 
-Taro 4.3.2 是最新正式版，但其 Vite Runner 仍要求 Vite 4。Vitest 5.1.0 是最新版本，要求 Vite 6.4、7 或 8。两者不能共享同一个 Vite 版本。
+Taro 4.3.2 是最新正式版，但其 Vite Runner 仍要求 Vite 4。Vitest 5.1.0 是最新版本，要求 Vite
+6.4、7 或 8。两者不能共享同一个 Vite 版本。
 
 ## 决策
 
@@ -26,7 +27,8 @@ Taro 4.3.2 是最新正式版，但其 Vite Runner 仍要求 Vite 4。Vitest 5.1
 - Vite 8.3.6
 - jsdom 29.1.1
 
-测试依赖和测试源码位于独立 `tests` pnpm workspace。Vitest 缓存写入 `.cache/vitest`，不与 Taro 构建缓存混用。
+测试依赖和测试源码位于独立 `tests` pnpm workspace。Vitest 缓存写入
+`.cache/vitest`，不与 Taro 构建缓存混用。
 
 ## 不采用
 

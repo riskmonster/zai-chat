@@ -6,26 +6,25 @@
     "preserveConstEnums": true,
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "noImplicitAny": false,
+    "strict": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "lib",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "skipLibCheck": true,
     "sourceMap": true,
     "rootDir": ".",
     "jsx": "react-jsx",
     "allowJs": true,
     "resolveJsonModule": true,
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    "typeRoots": ["node_modules/@types"],
     "paths": {
       // TS5090 leading './'
       "@/*": ["./src/*"]
     }
   },
-  "include": ["./src", "./types", "./config"],
+  "include": ["./src", "./types", "./config", "./openapi-ts-request.config.ts"],
   "compileOnSave": false
 }

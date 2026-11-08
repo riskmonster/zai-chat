@@ -9,4 +9,7 @@
 - [ADR-0002：UI 组件库](./decisions/0002-ui-library.md)
 - [ADR-0003：API、状态与渲染分层](./decisions/0003-state-architecture.md)
 - [ADR-0004：构建与测试双工具链](./decisions/0004-toolchain-lanes.md)
+- [ADR-0005：静态检查与质量门禁](./decisions/0005-static-analysis.md)
+- [ADR-0006：Taro feature-first 目录与模块边界](./decisions/0006-feature-architecture.md)
+- [ADR-0007：基础组件 Shell 与 View 三层编排](./decisions/0007-view-orchestration.md)
 - [技术基线验证](./qa/verification.md)

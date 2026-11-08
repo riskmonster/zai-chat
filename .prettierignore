@@ -1,0 +1,7 @@
+dist/
+node_modules/
+coverage/
+.cache/
+src/generated/
+src/index.html
+pnpm-lock.yaml

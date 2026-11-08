@@ -13,3 +13,4 @@ coverage/
 project.private.config.json
 *.log
 .agents/
+.playwright-mcp/

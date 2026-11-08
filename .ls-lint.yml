@@ -1,0 +1,42 @@
+ls:
+  src:
+    .dir: kebab-case
+    .config.ts: camelCase
+    .model.ts: kebab-case
+    .test.ts: kebab-case | camelCase
+    .test.tsx: PascalCase
+    .ts: kebab-case | camelCase
+    .tsx: PascalCase
+    .scss: kebab-case
+    .png: kebab-case
+    .html: kebab-case
+
+  src/pages:
+    .tsx: kebab-case
+
+  src/custom-tab-bar:
+    .tsx: kebab-case
+
+  src/features/*/ui/*:
+    .model.ts: PascalCase
+    .ts: camelCase
+    .tsx: PascalCase
+    .scss: kebab-case
+
+  tests:
+    .dir: kebab-case
+    .config.ts: camelCase
+    .test.ts: kebab-case | camelCase
+    .test.tsx: PascalCase
+
+ignore:
+  - .agents
+  - .cache
+  - .git
+  - .github
+  - .husky
+  - coverage
+  - dist
+  - "**/node_modules"
+  - "**/.cache"
+  - src/generated

@@ -2,10 +2,7 @@
 
 > 返回：[文档基线](../README.md) · [技术架构](../architecture/technical-architecture.md)
 
-> 版本：1.0
-> 更新日期：2026-11-07
-> 目标平台：微信小程序优先，H5/App 只保证可编译
-> 产品形态：借鉴微信“会话列表 + 单聊页”的熟悉信息结构，不复制微信品牌、名称或视觉资产
+> 版本：1.0更新日期：2026-11-07目标平台：微信小程序优先，H5/App 只保证可编译产品形态：借鉴微信“会话列表 + 单聊页”的熟悉信息结构，不复制微信品牌、名称或视觉资产
 
 ## 1. 产品定位
 
@@ -54,20 +51,20 @@
 
 ## 3. 产品范围与优先级
 
-| 优先级 | 能力 | 说明 |
-| --- | --- | --- |
-| P0 | 微信登录与会话恢复 | 静默登录，401 自动清理并回到登录页 |
-| P0 | 会话列表 | 新建、排序、空态、分页、删除 |
-| P0 | 文字对话 | 文本输入、多轮上下文、流式回复、复制 |
-| P0 | 生成控制 | 停止生成、失败重试、超时和限流提示 |
-| P0 | 历史消息 | 游标分页、断网恢复、会话内继续提问 |
-| P0 | 我的与隐私 | 用户信息、清除历史、隐私政策、注销/退出 |
-| P0 | 安全与运维 | 内容审核、限流、日志脱敏、错误监控 |
-| P1 | 多模态 | 图片理解、文件导入、拍照/相册授权闭环 |
-| P1 | 体验增强 | 安全 Markdown、示例问题、回答反馈、分享卡片 |
-| P1 | 工具调用 | 汇率、OCR、计算器等通过 FastAPI 工具层完成 |
-| P1 | 知识能力 | 用户主动导入资料后的个人知识库 |
-| P2 | 商业化 | 额度包、会员、订阅消息提醒 |
+| 优先级 | 能力               | 说明                                                                                      |
+| ------ | ------------------ | ----------------------------------------------------------------------------------------- |
+| P0     | 微信登录与会话恢复 | 静默登录，401 自动清理并回到登录页                                                        |
+| P0     | 会话列表           | 新建、排序、空态、分页、删除                                                              |
+| P0     | 文字对话           | 文本输入、多轮上下文、流式回复、复制                                                      |
+| P0     | 生成控制           | 停止生成、失败重试、超时和限流提示                                                        |
+| P0     | 历史消息           | 游标分页、断网恢复、会话内继续提问                                                        |
+| P0     | 我的与隐私         | 用户信息、清除历史、隐私政策、注销/退出                                                   |
+| P0     | 安全与运维         | 内容审核、限流、日志脱敏、错误监控                                                        |
+| P1     | 多模态             | 图片理解、文件导入、拍照/相册授权闭环                                                     |
+| P1     | 体验增强           | 安全 Markdown、示例问题、回答反馈、分享卡片                                               |
+| P1     | 工具调用           | 汇率、OCR、计算器等通过 FastAPI 工具层完成                                                |
+| P1     | 知识能力           | 用户主动导入资料后的个人知识库                                                            |
+| P2     | 商业化             | 额度包、会员、订阅消息提醒                                                                |
 | 暂不做 | 第三方电商订单聚合 | 仅接受官方开放平台、OAuth、用户主动导入或自有后端授权接口，禁止收集账号密码和绕过授权抓取 |
 
 ## 4. 信息架构
@@ -81,13 +78,13 @@ MVP 使用两个底部 tab：
 
 ### 4.1 页面清单
 
-| 页面 | 路由建议 | 核心内容 |
-| --- | --- | --- |
+| 页面        | 路由建议            | 核心内容                     |
+| ----------- | ------------------- | ---------------------------- |
 | 登录/隐私页 | `pages/login/index` | 隐私同意、微信登录、失败重试 |
-| 会话列表 | `pages/chat/list` | 新对话、最近会话、删除、空态 |
-| 聊天页 | `pages/chat/detail` | 消息流、输入框、停止、重试 |
-| 我的 | `pages/me/me` | 资料、历史管理、协议、退出 |
-| 设置 | `pages/me/settings` | 模型说明、清缓存、版本号 |
+| 会话列表    | `pages/chat/list`   | 新对话、最近会话、删除、空态 |
+| 聊天页      | `pages/chat/detail` | 消息流、输入框、停止、重试   |
+| 我的        | `pages/me/me`       | 资料、历史管理、协议、退出   |
+| 设置        | `pages/me/settings` | 模型说明、清缓存、版本号     |
 
 聊天主链路放在主包；关于、协议、设置等低频页后续可迁入分包。
 
@@ -179,16 +176,24 @@ FastAPI
 PostgreSQL / Redis / 对象存储（P1）
 ```
 
-FastAPI 是唯一可信后端和模型网关。模型密钥、供应商地址、限流额度、内容安全策略均在服务端配置，禁止通过 `TARO_APP_*` 进入客户端产物。
+FastAPI 是唯一可信后端和模型网关。模型密钥、供应商地址、限流额度、内容安全策略均在服务端配置，禁止通过
+`TARO_APP_*` 进入客户端产物。
 
 ### 7.2 前端落地建议
 
 - 路由：使用 Taro 文件路由和 `definePageConfig`，不在生成目录中手写路由。
 - tabbar：修改 `src/app.config.ts` 与 `src/custom-tab-bar/`，保持“对话”和“我的”两项。
-- API：`src/api/` 负责业务操作，`src/service/` 是 OpenAPI 生成物，统一走 `src/services/openapi-request.ts`。
+- API：`src/features/*/api/` 负责业务流程与 DTO 映射，`src/generated/openapi/`
+  是 OpenAPI 生成物，统一走 `src/shared/api/openapi-request.ts`。
 - 流式请求：单独增加 SSE/chunk 适配层，不把普通 JSON 请求包装强行改造成流式。
-- 状态：`src/store/chat.ts` 管理当前会话、消息和运行状态；认证继续使用 Zustand。
-- 通用聊天组件放在 `src/components/chat/`，页面只订阅 selector 并派发用户意图。
+- 状态：`src/features/chat/store/chat-slice.ts`
+  只管理可序列化状态；`src/features/chat/application/chat-controller.ts`
+  负责请求、SSE、取消、重试和对账。
+- 通用聊天组件放在 `src/features/chat/ui/`，页面只使用 feature public
+  API、ViewModel 和用户意图命令。
+- Taro 与 Taroify 基础组件、图标统一从 `src/shared/ui/shell.ts` 引入。
+- 交互型 View 使用 `View + use同名Hook + Model` 三层结构；View 不持有 React 状态、Effect 或 Taro
+  API。
 - 长文本和消息列表避免深层响应式包裹；历史消息分页加载，首屏不一次性渲染全部记录。
 
 微信端流式优先方案：
@@ -199,27 +204,28 @@ FastAPI 是唯一可信后端和模型网关。模型密钥、供应商地址、
 4. H5 使用基于 `fetch` 的流式读取；App 或不支持 chunk 的环境降级为轮询任务结果或等待完整响应。
 5. 所有 `wx.*` 调用放在 `#ifdef MP-WEIXIN` 中，其他平台提供安全分支。
 
-现有 `src/services/openapi-request.ts` 基于 `Taro.request`，只承载普通 JSON；流式能力由 `src/services/sse/` 独立承载。
+现有 `src/shared/api/openapi-request.ts` 基于 `Taro.request`，只承载普通 JSON；流式能力由
+`src/shared/api/sse/` 独立承载。
 
 ### 7.3 FastAPI API 草案
 
 统一前缀：`/api/v1`，错误响应包含 `code`、`message`、`requestId`。
 
-| 方法 | 路径 | 用途 |
-| --- | --- | --- |
-| POST | `/auth/wx-login` | code 登录 |
-| POST | `/auth/refresh` | 刷新 token |
-| POST | `/auth/logout` | 注销当前会话 |
-| GET | `/conversations` | 会话游标分页 |
-| POST | `/conversations` | 新建会话 |
-| PUT | `/conversations/{id}` | 重命名会话 |
-| DELETE | `/conversations/{id}` | 软删除会话 |
-| GET | `/conversations/{id}/messages` | 消息游标分页 |
-| POST | `/conversations/{id}/messages` | 幂等提交用户消息并创建生成任务 |
-| GET | `/runs/{runId}/events` | SSE 订阅生成事件 |
-| POST | `/runs/{runId}/cancel` | 停止生成 |
-| POST | `/runs/{runId}/retry` | 基于原用户消息重新生成 |
-| GET | `/runs/{runId}` | 查询任务最终状态 |
+| 方法   | 路径                           | 用途                           |
+| ------ | ------------------------------ | ------------------------------ |
+| POST   | `/auth/wx-login`               | code 登录                      |
+| POST   | `/auth/refresh`                | 刷新 token                     |
+| POST   | `/auth/logout`                 | 注销当前会话                   |
+| GET    | `/conversations`               | 会话游标分页                   |
+| POST   | `/conversations`               | 新建会话                       |
+| PUT    | `/conversations/{id}`          | 重命名会话                     |
+| DELETE | `/conversations/{id}`          | 软删除会话                     |
+| GET    | `/conversations/{id}/messages` | 消息游标分页                   |
+| POST   | `/conversations/{id}/messages` | 幂等提交用户消息并创建生成任务 |
+| GET    | `/runs/{runId}/events`         | SSE 订阅生成事件               |
+| POST   | `/runs/{runId}/cancel`         | 停止生成                       |
+| POST   | `/runs/{runId}/retry`          | 基于原用户消息重新生成         |
+| GET    | `/runs/{runId}`                | 查询任务最终状态               |
 
 提交消息示例：
 
@@ -252,7 +258,8 @@ SSE 事件类型：
 - `done`：最终状态和完成时间。
 - `error`：稳定错误码，不暴露供应商堆栈。
 
-`GET /runs/{id}/events` 通过 `Authorization` 头鉴权，支持 `Last-Event-ID` 或 `after` 游标重连。SSE 只负责实时体验，最终完整消息必须落库，客户端重连后可查询最终状态。
+`GET /runs/{id}/events` 通过 `Authorization` 头鉴权，支持 `Last-Event-ID` 或 `after`
+游标重连。SSE 只负责实时体验，最终完整消息必须落库，客户端重连后可查询最终状态。
 
 ### 7.4 LLM Provider 抽象
 
@@ -275,13 +282,13 @@ class LLMProvider(Protocol):
 
 ### 7.5 数据模型
 
-| 表 | 关键字段 |
-| --- | --- |
-| `users` | `id`、`openid`、`unionid`、`nickname`、`avatar_url`、`status`、`created_at` |
-| `conversations` | `id`、`user_id`、`title`、`model_alias`、`last_message_at`、`deleted_at` |
-| `messages` | `id`、`conversation_id`、`role`、`content_json`、`status`、`client_message_id`、`created_at` |
-| `runs` | `id`、`conversation_id`、`user_message_id`、`assistant_message_id`、`provider`、`model`、`status`、`usage_json`、`error_code` |
-| `usage_daily` | `user_id`、`date`、`message_count`、`input_tokens`、`output_tokens` |
+| 表              | 关键字段                                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `users`         | `id`、`openid`、`unionid`、`nickname`、`avatar_url`、`status`、`created_at`                                                   |
+| `conversations` | `id`、`user_id`、`title`、`model_alias`、`last_message_at`、`deleted_at`                                                      |
+| `messages`      | `id`、`conversation_id`、`role`、`content_json`、`status`、`client_message_id`、`created_at`                                  |
+| `runs`          | `id`、`conversation_id`、`user_message_id`、`assistant_message_id`、`provider`、`model`、`status`、`usage_json`、`error_code` |
+| `usage_daily`   | `user_id`、`date`、`message_count`、`input_tokens`、`output_tokens`                                                           |
 
 关键约束：
 
@@ -304,7 +311,7 @@ class LLMProvider(Protocol):
 
 - “对话”“我的”页面和自定义 tabbar 已落地，后续继续补齐真实接口闭环。
 - `wxLogin` 的 OpenAPI 契约为 `{ code: string }`，调用方必须使用 `Taro.login()` 返回的 code。
-- 普通 JSON 与 SSE 已分别由 `src/services/openapi-request.ts`、`src/services/sse/` 承载。
+- 普通 JSON 与 SSE 已分别由 `src/shared/api/openapi-request.ts`、`src/shared/api/sse/` 承载。
 - tabbar 使用本地 PNG 资源，发布前仍需在模拟器和真机验证。
 
 ## 9. 指标
@@ -334,7 +341,8 @@ class LLMProvider(Protocol):
 - 断网、接口 401、429、模型超时和流中断均有稳定提示，不出现重复消息。
 - 会话和消息有严格用户隔离；删除和清空历史有二次确认。
 - 微信开发者工具 Console 无新增报错，Network 无非法域名和 4xx/5xx 阻断。
-- 生产构建通过 `pnpm.cmd type-check`、`pnpm.cmd exec eslint src`、`pnpm.cmd test:run` 和 `pnpm.cmd build:mp:prod`。
+- 生产构建通过 `pnpm.cmd type-check`、`pnpm.cmd exec eslint src`、`pnpm.cmd test:run` 和
+  `pnpm.cmd build:mp:prod`。
 - 微信模拟器完成登录、四类消息状态、tabbar、安全区和冷启动验收；真机完成授权成功/拒绝和弱网测试。
 - 主包低于 2 MB，模型密钥不出现在客户端产物和公开配置中。
 

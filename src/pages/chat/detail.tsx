@@ -1,114 +1,50 @@
-import { Text, View } from '@tarojs/components'
-import { useRouter } from '@tarojs/taro'
-import { useEffect } from 'react'
+import type { ReactElement } from 'react'
 
-import ChatComposer from '@/components/chat/ChatComposer'
-import ChatMessageList from '@/components/chat/ChatMessageList'
-import type { Message } from '@/service/types'
-import { useChatStore } from '@/store/chat'
+import { Button, Text, View } from '@/shared/ui/shell'
+
+import { ChatComposer, ChatMessageList } from '@/features/chat/public'
+
+import { CHAT_DETAIL_PAGE_COPY } from './chat-detail-page.model'
+import { useChatDetailPage } from './useChatDetailPage'
 
 import './detail.scss'
 
-const EMPTY_MESSAGES: Message[] = []
-
-export default function ChatDetailPage() {
-  const router = useRouter()
-  const routeConversationId = normalizeParam(router.params.conversationId)
-  const initialPrompt = normalizeParam(router.params.prompt)
-  const activeConversationId = useChatStore(state => state.activeConversationId)
-  const messages = useChatStore(state =>
-    getMessages(state.messagesByConversation, activeConversationId),
-  )
-  const run = useChatStore(state =>
-    activeConversationId
-      ? state.runsByConversation[activeConversationId]
-      : undefined,
-  )
-  const messageError = useChatStore(state =>
-    activeConversationId
-      ? state.messageErrorByConversation[activeConversationId] ?? null
-      : null,
-  )
-  const openConversation = useChatStore(state => state.openConversation)
-  const loadMessages = useChatStore(state => state.loadMessages)
-  const sendText = useChatStore(state => state.sendText)
-  const stopGeneration = useChatStore(state => state.stopGeneration)
-  const retryGeneration = useChatStore(state => state.retryGeneration)
-
-  useEffect(() => {
-    if (routeConversationId) {
-      void openConversation(routeConversationId)
-    }
-  }, [openConversation, routeConversationId])
-
-  const conversationId = activeConversationId ?? routeConversationId ?? null
-  const runPhase = run?.phase ?? 'idle'
-  const runError = run?.error ?? null
+export default function ChatDetailPage(): ReactElement {
+  const { model, actions } = useChatDetailPage()
 
   return (
     <View className='chat-detail-page'>
       <View className='chat-detail-messages'>
-        {messageError
-          ? (
-              <View className='chat-detail-error'>
-                <Text className='chat-detail-error__copy'>{messageError.message}</Text>
-                {conversationId
-                  ? (
-                      <Text
-                        className='chat-detail-error__retry'
-                        onClick={() => void loadMessages(conversationId)}
-                      >
-                        重新加载
-                      </Text>
-                    )
-                  : null}
-              </View>
-            )
-          : null}
+        {model.messageError !== null && model.messageError.length > 0 ? (
+          <View className='chat-detail-error'>
+            <Text className='chat-detail-error__copy'>{model.messageError}</Text>
+            {model.conversationId !== null ? (
+              <Button
+                className='chat-detail-error__retry'
+                variant='text'
+                size='small'
+                onClick={actions.reloadMessages}
+              >
+                {CHAT_DETAIL_PAGE_COPY.reload}
+              </Button>
+            ) : null}
+          </View>
+        ) : null}
         <ChatMessageList
-          messages={messages}
-          runPhase={runPhase}
-          runError={runError}
-          onRetry={() => {
-            if (conversationId) {
-              void retryGeneration(conversationId)
-            }
-          }}
+          messages={model.messages}
+          canRetry={model.canRetry}
+          errorMessage={model.runError}
+          onRetry={actions.retryGeneration}
         />
       </View>
 
       <ChatComposer
-        status={runPhase}
-        initialDraft={initialPrompt}
-        errorMessage={messages.length === 0 && runError ? runError.message : undefined}
-        onSubmit={text => sendText(conversationId, text)}
-        onStop={() => {
-          if (conversationId) {
-            void stopGeneration(conversationId)
-          }
-        }}
+        status={model.runPhase}
+        initialDraft={model.initialPrompt}
+        errorMessage={model.composerError}
+        onSubmit={actions.sendText}
+        onStop={actions.stopGeneration}
       />
     </View>
   )
-}
-
-function getMessages(
-  messagesByConversation: Record<string, Message[]>,
-  conversationId: string | null,
-): Message[] {
-  return conversationId
-    ? messagesByConversation[conversationId] ?? EMPTY_MESSAGES
-    : EMPTY_MESSAGES
-}
-
-function normalizeParam(value?: string): string {
-  if (!value) {
-    return ''
-  }
-  try {
-    return decodeURIComponent(value)
-  }
-  catch {
-    return value
-  }
 }

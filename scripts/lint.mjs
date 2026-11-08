@@ -10,15 +10,27 @@ const executable = path.join(
   process.platform === 'win32' ? 'eslint.cmd' : 'eslint',
 )
 
-const result = spawnSync(executable, ['src', 'tests', '--ext', '.ts,.tsx'], {
-  cwd: rootDir,
-  env: {
-    ...process.env,
-    ESLINT_USE_FLAT_CONFIG: 'false',
+const result = spawnSync(
+  executable,
+  [
+    'src',
+    '--ext',
+    '.ts,.tsx',
+    '--max-warnings',
+    '0',
+    '--no-inline-config',
+    '--report-unused-disable-directives',
+  ],
+  {
+    cwd: rootDir,
+    env: {
+      ...process.env,
+      ESLINT_USE_FLAT_CONFIG: 'false',
+    },
+    shell: process.platform === 'win32',
+    stdio: 'inherit',
   },
-  shell: process.platform === 'win32',
-  stdio: 'inherit',
-})
+)
 
 if (result.error) {
   console.error(result.error)

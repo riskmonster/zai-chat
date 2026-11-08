@@ -4,14 +4,17 @@ import { fileURLToPath } from 'node:url'
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const allowedTargets = new Set([
+  'dist',
   'dist/weapp',
   'dist/h5',
   '.cache',
   '.temp',
   '.swc',
+  '.playwright-mcp',
   '.pnpm-store',
   'node_modules/.cache',
   'node_modules/.vite',
+  'tests/node_modules/.vite-temp',
 ])
 const requestedTargets = process.argv.slice(2)
 
@@ -28,10 +31,7 @@ for (const target of requestedTargets) {
   }
 
   const absoluteTarget = path.resolve(rootDir, normalized)
-  if (
-    absoluteTarget === rootDir
-    || !absoluteTarget.startsWith(`${rootDir}${path.sep}`)
-  ) {
+  if (absoluteTarget === rootDir || !absoluteTarget.startsWith(`${rootDir}${path.sep}`)) {
     console.error(`Refusing to clean path outside workspace: ${absoluteTarget}`)
     process.exit(1)
   }

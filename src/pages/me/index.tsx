@@ -1,33 +1,38 @@
-import Button from '@taroify/core/button'
-import { Text, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import type { ReactElement } from 'react'
+
+import { Button, Text, View } from '@/shared/ui/shell'
+
+import { ME_PAGE_COPY } from './me-page.model'
+import { useMePage } from './useMePage'
 
 import './index.scss'
 
-export default function MePage() {
+export default function MePage(): ReactElement {
+  const { actions } = useMePage()
+
   return (
     <View className='me-page'>
       <View className='me-profile'>
-        <View className='me-avatar'>AI</View>
+        <View className='me-avatar'>{ME_PAGE_COPY.avatar}</View>
         <View className='me-profile-copy'>
-          <Text className='me-name'>聊天助手</Text>
-          <Text className='me-caption'>微信登录接口待接入</Text>
+          <Text className='me-name'>{ME_PAGE_COPY.name}</Text>
+          <Text className='me-caption'>{ME_PAGE_COPY.caption}</Text>
         </View>
       </View>
 
       <View className='me-panel'>
-        <Text className='me-panel-title'>基础设置</Text>
+        <Text className='me-panel-title'>{ME_PAGE_COPY.panelTitle}</Text>
         <Button
           block
           variant='outlined'
           color='primary'
-          onClick={() => Taro.showToast({ title: '设置页待实现', icon: 'none' })}
+          onClick={actions.openSettings}
         >
-          打开设置
+          {ME_PAGE_COPY.openSettings}
         </Button>
       </View>
 
-      <Text className='me-version'>Taro React 技术基线 · 4.3.2</Text>
+      <Text className='me-version'>{ME_PAGE_COPY.version}</Text>
     </View>
   )
 }

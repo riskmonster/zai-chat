@@ -1,20 +1,26 @@
 import { defineConfig } from 'openapi-ts-request'
 
+interface OpenApiDocument {
+  paths?: Record<string, unknown>
+}
+
 export default defineConfig([
   {
     describe: 'zai-chat-mp-api',
     schemaPath: './docs/api/openapi.yaml',
-    serversPath: './src/service',
-    requestLibPath: `import request from '@/services/openapi-request';\nimport type { CustomRequestOptions_ } from '@/services/openapi-request';`,
-    requestOptionsType: 'CustomRequestOptions_',
+    serversPath: './src/generated/openapi',
+    requestLibPath: `import request from '@/shared/api/openapi-request';\nimport type { CustomRequestOptions } from '@/shared/api/openapi-request';`,
+    requestOptionsType: 'CustomRequestOptions',
     isGenReactQuery: false,
     isGenJavaScript: false,
     isCamelCase: true,
     hook: {
-      // @ts-ignore openapi-ts-request does not export its complete hook type
-      afterOpenApiDataInited(openAPIData) {
-        delete openAPIData.paths?.['/api/v1/runs/{runId}/events']
-        return openAPIData
+      afterOpenApiDataInited(openApiData: OpenApiDocument): OpenApiDocument {
+        const { ['/api/v1/runs/{runId}/events']: _ignoredPath, ...paths } = openApiData.paths ?? {}
+        return {
+          ...openApiData,
+          paths,
+        }
       },
     },
   },

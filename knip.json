@@ -1,0 +1,42 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "compilers": {
+    ".sass": true,
+    ".scss": true
+  },
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/app.ts",
+        "src/app.config.ts",
+        "src/custom-tab-bar/index.tsx",
+        "src/pages/**/*.tsx",
+        "src/pages/**/*.config.ts",
+        "config/**/*.ts",
+        "scripts/**/*.mjs"
+      ],
+      "project": ["src/**/*.{ts,tsx,scss,sass}", "config/**/*.ts", "scripts/**/*.mjs"],
+      "ignore": ["src/generated/**"],
+      "ignoreDependencies": [
+        "@babel/runtime",
+        "@babel/plugin-transform-class-properties",
+        "@tarojs/plugin-framework-react",
+        "@tarojs/plugin-generator",
+        "@tarojs/plugin-platform-h5",
+        "@tarojs/plugin-platform-weapp",
+        "@tarojs/react",
+        "@tarojs/runtime",
+        "@tarojs/vite-runner",
+        "@types/minimatch",
+        "@vitejs/plugin-react",
+        "react-dom",
+        "terser",
+        "vite"
+      ]
+    },
+    "tests": {
+      "entry": ["unit/**/*.test.{ts,tsx}"],
+      "project": ["**/*.{ts,tsx,scss,sass}"]
+    }
+  }
+}

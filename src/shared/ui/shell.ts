@@ -1,0 +1,6 @@
+export { default as Button } from '@taroify/core/button'
+export { default as Textarea } from '@taroify/core/textarea'
+export { default as ArrowUp } from '@taroify/icons/ArrowUp'
+export { default as Replay } from '@taroify/icons/Replay'
+export { default as StopCircle } from '@taroify/icons/StopCircle'
+export { CoverImage, CoverView, Text, View } from '@tarojs/components'

@@ -1,7 +1,6 @@
 # API 约定
 
-> Canonical schema：[openapi.yaml](./openapi.yaml)
-> SSE 事件：[sse-events.md](./sse-events.md)
+> Canonical schema：[openapi.yaml](./openapi.yaml) SSE 事件：[sse-events.md](./sse-events.md)
 
 ## 通用规则
 
@@ -27,7 +26,7 @@
 }
 ```
 
-前端生成代码通过 `src/services/openapi-request.ts` 解包 `data`。
+前端生成代码通过 `src/shared/api/openapi-request.ts` 解包 `data`。
 
 ## 错误响应
 
@@ -80,10 +79,11 @@ pnpm.cmd contract:check
 ```
 
 - 输入：`docs/api/openapi.yaml`
-- 输出：`src/service/**`
-- 请求适配：`src/services/openapi-request.ts`
+- 输出：`src/generated/openapi/**`
+- 请求适配：`src/shared/api/openapi-request.ts`
 - 生成目录禁止手改
-- SSE 路径从普通生成代码中排除，由 `src/services/sse/` 手写适配
+- SSE 路径从普通生成代码中排除，由 `src/shared/api/sse/` 和 `src/features/chat/api/chat-stream.ts`
+  分层适配
 
 ## 兼容性
 
