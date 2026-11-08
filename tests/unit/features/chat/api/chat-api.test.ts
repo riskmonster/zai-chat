@@ -7,6 +7,8 @@ const serviceMock = vi.hoisted(() => ({
   conversationsUsingPost: vi.fn(),
   conversationsConversationIdMessagesUsingGet: vi.fn(),
   conversationsConversationIdMessagesUsingPost: vi.fn(),
+  messagesUsingGet: vi.fn(),
+  messagesUsingPost: vi.fn(),
   runsRunIdUsingGet: vi.fn(),
   runsRunIdCancelUsingPost: vi.fn(),
   runsRunIdRetryUsingPost: vi.fn(),
@@ -78,5 +80,65 @@ describe('chatApi', () => {
       createdAt: '2026-11-07T10:00:00.000Z',
       updatedAt: '2026-11-07T10:00:00.000Z',
     })
+  })
+
+  it('uses persisted message operations without starting a run', async () => {
+    serviceMock.messagesUsingPost.mockResolvedValue({
+      message: {
+        id: 'persisted-1',
+        clientMessageId: 'client-1',
+        conversationId: 'user-1',
+        role: 'user',
+        content: { type: 'text', text: '你好' },
+        status: 'completed',
+        createdAt: '2026-11-07T10:00:00.000Z',
+        completedAt: '2026-11-07T10:00:00.000Z',
+      },
+    })
+
+    const saved = await chatApi.sendPersistedMessage({
+      clientMessageId: 'client-1',
+      text: '你好',
+    })
+
+    expect(serviceMock.messagesUsingPost).toHaveBeenCalledWith({
+      body: {
+        clientMessageId: 'client-1',
+        content: { type: 'text', text: '你好' },
+      },
+    })
+    expect(saved.status).toBe('completed')
+    expect(saved.conversationId).toBe('user-1')
+  })
+
+  it('maps desc-paginated persisted messages into chronological render order', async () => {
+    serviceMock.messagesUsingGet.mockResolvedValue({
+      items: [
+        {
+          id: 'message-2',
+          clientMessageId: 'client-2',
+          conversationId: 'user-1',
+          role: 'user',
+          content: { type: 'text', text: '第二条' },
+          status: 'completed',
+          createdAt: '2026-11-07T10:01:00.000Z',
+          completedAt: '2026-11-07T10:01:00.000Z',
+        },
+        {
+          id: 'message-1',
+          clientMessageId: 'client-1',
+          conversationId: 'user-1',
+          role: 'user',
+          content: { type: 'text', text: '第一条' },
+          status: 'completed',
+          createdAt: '2026-11-07T10:00:00.000Z',
+          completedAt: '2026-11-07T10:00:00.000Z',
+        },
+      ],
+    })
+
+    const page = await chatApi.listPersistedMessages()
+
+    expect(page.items.map((message) => message.id)).toEqual(['message-1', 'message-2'])
   })
 })

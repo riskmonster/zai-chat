@@ -56,3 +56,41 @@ export function conversationsConversationIdMessagesUsingPost({
     }
   );
 }
+
+/** List messages in the authenticated user's default conversation Stage-one vertical-slice endpoint. The default conversation identifier isderived from the authenticated user and is never accepted from the client. GET /api/v1/messages */
+export function messagesUsingGet({
+  params,
+  options,
+}: {
+  // 叠加生成的Param类型 (非body参数openapi默认没有生成对象)
+  params: API.MessagesUsingGetParams;
+  options?: CustomRequestOptions;
+}) {
+  return request<API.PersistedMessagePageResponse>('/api/v1/messages', {
+    method: 'GET',
+    params: {
+      // limit has a default value: 20
+      limit: '20',
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** Persist one user message in the default conversation Stage-one vertical-slice endpoint. It does not create a generation run orimply an AI reply. The same clientMessageId with identical content isidempotent; reusing it with different content returns 409. POST /api/v1/messages */
+export function messagesUsingPost({
+  body,
+  options,
+}: {
+  body: API.CreatePersistedMessageRequest;
+  options?: CustomRequestOptions;
+}) {
+  return request<API.PersistedMessageResponse>('/api/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}

@@ -85,8 +85,36 @@
 
 ## Console / Network
 
-- `get_simulator_console --command "grep -i error"` 返回空结果，无应用错误。
-- 当前未发起后端业务请求，等待 FastAPI 服务接入后执行真实 SSE 验收。
+- 2026-11-07 基线：`get_simulator_console --command "grep -i error"`
+  返回空结果，无应用错误；当时尚未接入 FastAPI 业务请求。
+
+## 2026-11-08 登录与单条消息垂直切片
+
+| 验收项                | 结果 | 证据                                                      |
+| --------------------- | ---- | --------------------------------------------------------- |
+| PostgreSQL 数据库     | 通过 | `zai-wp-chat`，owner `zai_wp_chat_owner`，UTF8            |
+| Alembic 迁移          | 通过 | revision `20261108_0001`                                  |
+| 数据表                | 通过 | `users`、`messages`                                       |
+| 后端测试              | 通过 | 3 passed：登录、幂等、隔离、refresh、logout               |
+| 后端静态检查          | 通过 | Ruff、format、Pyright strict                              |
+| 前端测试              | 通过 | 17 个测试文件、40 个用例                                  |
+| 前端静态检查          | 通过 | typecheck、ESLint、Stylelint、ls-lint、架构检查           |
+| API 契约              | 通过 | `pnpm contract:check`                                     |
+| 微信构建              | 通过 | `pnpm build:weapp`                                        |
+| H5 构建               | 通过 | `pnpm build:h5`                                           |
+| FastAPI 实际启动      | 通过 | health 200、OpenAPI 200                                   |
+| 微信模拟器            | 通过 | 当前页 `pages/login/index`，Console 无应用异常            |
+| 小程序到 FastAPI      | 通过 | Network 命中 `http://127.0.0.1:8000/api/v1/auth/wx-login` |
+| 未配置 AppSecret 行为 | 通过 | 登录返回 503 `WECHAT_NOT_CONFIGURED` 并显示服务端配置提示 |
+
+当前未包含 AI 模型、run 和 SSE 真实回复。微信真实登录需在 `backend/.env` 写入有效 `WX_APP_SECRET`
+后，用微信开发者工具执行真机或模拟器验收。
+
+运行态证据：
+
+![登录页](./login-page-runtime.jpg)
+
+![未配置微信密钥时的错误提示](./login-missing-secret-runtime.jpg)
 
 ## 已知警告
 

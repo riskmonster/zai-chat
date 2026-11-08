@@ -14,3 +14,11 @@ project.private.config.json
 *.log
 .agents/
 .playwright-mcp/
+backend/.env
+backend/.venv/
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/.mypy_cache/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/*.egg-info/

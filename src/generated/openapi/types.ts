@@ -298,6 +298,11 @@ export type CreateConversationRequest = {
   title?: string;
 };
 
+export type CreatePersistedMessageRequest = {
+  clientMessageId: string;
+  content: MessageContent;
+};
+
 export type ErrorResponse = {
   /** Stable machine-readable error code */
   code: string;
@@ -333,6 +338,87 @@ export type MessagePageResponse =
     data: MessagePage;
   };
 
+export type MessagesUsingGetParams = {
+  /** Opaque cursor returned by a previous page */
+  cursor?: string;
+  limit?: number;
+};
+
+export type MessagesUsingGetResponses = {
+  /**
+   * Persisted message page
+   */
+  200: PersistedMessagePageResponse;
+  /**
+   * Missing, invalid, or expired authentication
+   */
+  401: ErrorResponse;
+  /**
+   * Internal error without provider or secret details
+   */
+  500: ErrorResponse;
+};
+
+export type MessagesUsingPostResponses = {
+  /**
+   * Existing idempotent message
+   */
+  200: PersistedMessageResponse;
+  /**
+   * Message persisted
+   */
+  201: PersistedMessageResponse;
+  /**
+   * Invalid request
+   */
+  400: ErrorResponse;
+  /**
+   * Missing, invalid, or expired authentication
+   */
+  401: ErrorResponse;
+  /**
+   * Resource state conflict or duplicate idempotent request
+   */
+  409: ErrorResponse;
+  /**
+   * Internal error without provider or secret details
+   */
+  500: ErrorResponse;
+};
+
+export type PersistedMessage = {
+  id: string;
+  clientMessageId: string;
+  conversationId: string;
+  role: 'user';
+  content: MessageContent;
+  status: 'completed';
+  createdAt: string;
+  completedAt: string;
+};
+
+export type PersistedMessageData = {
+  message: PersistedMessage;
+};
+
+export type PersistedMessagePage = {
+  items: PersistedMessage[];
+  /** Omitted or null when there are no more items */
+  nextCursor?: string;
+};
+
+export type PersistedMessagePageResponse =
+  // #/components/schemas/ApiResponseBase
+  ApiResponseBase & {
+    data: PersistedMessagePage;
+  };
+
+export type PersistedMessageResponse =
+  // #/components/schemas/ApiResponseBase
+  ApiResponseBase & {
+    data: PersistedMessageData;
+  };
+
 export type RefreshTokenRequest = {
   refreshToken: string;
 };
@@ -343,12 +429,18 @@ export type RetryRunRequest = {
 
 export enum RoleEnum {
   user = 'user',
+}
+
+export type IRoleEnum = keyof typeof RoleEnum;
+
+export enum RoleEnum2 {
+  user = 'user',
   assistant = 'assistant',
   system = 'system',
   tool = 'tool',
 }
 
-export type IRoleEnum = keyof typeof RoleEnum;
+export type IRoleEnum2 = keyof typeof RoleEnum2;
 
 export type Run = {
   id: string;
@@ -479,6 +571,12 @@ export enum StatusEnum {
 export type IStatusEnum = keyof typeof StatusEnum;
 
 export enum StatusEnum2 {
+  completed = 'completed',
+}
+
+export type IStatusEnum2 = keyof typeof StatusEnum2;
+
+export enum StatusEnum3 {
   pending = 'pending',
   streaming = 'streaming',
   completed = 'completed',
@@ -486,9 +584,9 @@ export enum StatusEnum2 {
   failed = 'failed',
 }
 
-export type IStatusEnum2 = keyof typeof StatusEnum2;
+export type IStatusEnum3 = keyof typeof StatusEnum3;
 
-export enum StatusEnum3 {
+export enum StatusEnum4 {
   queued = 'queued',
   streaming = 'streaming',
   completed = 'completed',
@@ -496,7 +594,7 @@ export enum StatusEnum3 {
   failed = 'failed',
 }
 
-export type IStatusEnum3 = keyof typeof StatusEnum3;
+export type IStatusEnum4 = keyof typeof StatusEnum4;
 
 export enum TypeEnum {
   text = 'text',
@@ -540,4 +638,6 @@ export type UsersMeUsingGetResponses = {
 export type WxLoginRequest = {
   /** One-time code from Taro.login or wx.login */
   code: string;
+  /** Privacy agreement version accepted before login */
+  privacyVersion: string;
 };

@@ -1,27 +1,32 @@
-import { useRouter } from '@tarojs/taro'
+import Taro, { useRouter } from '@tarojs/taro'
 import { useEffect } from 'react'
 
+import { useAuthUser } from '@/features/auth/public'
 import { chatController, useChatDetailModel } from '@/features/chat/public'
 
 import { normalizeRouteParam, type ChatDetailPageController } from './chat-detail-page.model'
 
 export function useChatDetailPage(): ChatDetailPageController {
   const router = useRouter()
+  const user = useAuthUser()
   const routeConversationId = normalizeRouteParam(router.params.conversationId)
   const initialPrompt = normalizeRouteParam(router.params.prompt)
-  const detailModel = useChatDetailModel(routeConversationId || null)
+  const fallbackConversationId = user?.id ?? ''
+  const conversationId =
+    routeConversationId.length > 0 ? routeConversationId : fallbackConversationId
+  const detailModel = useChatDetailModel(conversationId || null)
 
   useEffect(() => {
-    if (routeConversationId.length > 0) {
-      void chatController.openConversation(routeConversationId)
-    } else {
-      chatController.startNewConversation()
+    if (user === null) {
+      void Taro.reLaunch({ url: '/pages/login/index' })
+      return
     }
-  }, [routeConversationId])
+    void chatController.loadPersistedMessages(user.id)
+  }, [user])
 
   const reloadMessages = () => {
-    if (detailModel.conversationId !== null) {
-      void chatController.loadMessages(detailModel.conversationId)
+    if (user !== null) {
+      void chatController.loadPersistedMessages(user.id)
     }
   }
 
@@ -32,7 +37,7 @@ export function useChatDetailPage(): ChatDetailPageController {
   }
 
   const sendText = (text: string) => {
-    return chatController.sendText(detailModel.conversationId, text)
+    return user === null ? Promise.resolve(false) : chatController.sendPersistedText(user.id, text)
   }
 
   const stopGeneration = () => {

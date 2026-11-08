@@ -1,4 +1,4 @@
-import { toAppError } from '@/shared/lib/errors'
+import { AppError, toAppError } from '@/shared/lib/errors'
 import { createClientMessageId } from '@/shared/lib/id'
 
 import { chatApi, type ChatApi } from '../api/chat-api'
@@ -25,11 +25,14 @@ export interface ChatControllerDependencies {
 
 export interface ChatController {
   loadConversations: () => Promise<void>
+  loadDefaultConversation: (userId: string) => Promise<void>
   createConversation: (title?: string) => Promise<Conversation | null>
   startNewConversation: () => void
   openConversation: (conversationId: string) => Promise<void>
   loadMessages: (conversationId: string) => Promise<void>
+  loadPersistedMessages: (userId: string) => Promise<void>
   sendText: (conversationId: string | null, text: string) => Promise<boolean>
+  sendPersistedText: (userId: string, text: string) => Promise<boolean>
   stopGeneration: (conversationId: string) => Promise<void>
   retryGeneration: (conversationId: string) => Promise<void>
   clearConversationError: () => void
@@ -112,6 +115,40 @@ export function createChatController({
       }
     },
 
+    async loadDefaultConversation(userId) {
+      store.getState().applyDomainAction({ type: 'conversations_loading' })
+      try {
+        const page = await api.listPersistedMessages()
+        const latest = page.items[page.items.length - 1]
+        const updatedAt = latest?.createdAt ?? now()
+        const conversation: Conversation = {
+          id: userId,
+          title: '默认会话',
+          ...(latest !== undefined
+            ? {
+                lastMessagePreview: latest.content.text.slice(0, 160),
+                lastMessageAt: latest.createdAt,
+              }
+            : {}),
+          createdAt: updatedAt,
+          updatedAt,
+        }
+        store.getState().applyDomainAction({
+          type: 'conversations_loaded',
+          page: { items: [conversation] },
+        })
+        store.getState().applyDomainAction({
+          type: 'active_conversation_changed',
+          conversationId: userId,
+        })
+      } catch (error) {
+        store.getState().applyDomainAction({
+          type: 'conversations_failed',
+          error: toAppError(error, 'REQUEST_FAILED'),
+        })
+      }
+    },
+
     async createConversation(title) {
       try {
         const conversation = await api.createConversation(title)
@@ -160,6 +197,27 @@ export function createChatController({
         store.getState().applyDomainAction({
           type: 'messages_failed',
           conversationId,
+          error: toAppError(error, 'REQUEST_FAILED'),
+        })
+      }
+    },
+
+    async loadPersistedMessages(userId) {
+      if (store.getState().messagePhaseByConversation[userId] === 'loading') {
+        return
+      }
+      store.getState().applyDomainAction({ type: 'messages_loading', conversationId: userId })
+      try {
+        const page = await api.listPersistedMessages()
+        store.getState().applyDomainAction({
+          type: 'messages_loaded',
+          conversationId: userId,
+          page,
+        })
+      } catch (error) {
+        store.getState().applyDomainAction({
+          type: 'messages_failed',
+          conversationId: userId,
           error: toAppError(error, 'REQUEST_FAILED'),
         })
       }
@@ -226,6 +284,64 @@ export function createChatController({
         store.getState().applyDomainAction({
           type: 'send_failed',
           conversationId: targetConversationId,
+          error: toAppError(error, 'REQUEST_FAILED'),
+        })
+        return false
+      }
+    },
+
+    async sendPersistedText(userId, text) {
+      const content = text.trim()
+      if (content.length === 0) {
+        return false
+      }
+      if (content.length > 2000) {
+        store.getState().applyDomainAction({
+          type: 'send_failed',
+          conversationId: userId,
+          error: new AppError({
+            code: 'MESSAGE_TEXT_TOO_LONG',
+            message: '单条消息不能超过 2000 字',
+          }),
+        })
+        return false
+      }
+
+      const clientMessageId = createMessageId()
+      const createdAt = now()
+      const optimisticMessage: Message = {
+        id: clientMessageId,
+        conversationId: userId,
+        role: 'user',
+        content: {
+          type: 'text',
+          text: content,
+        },
+        status: 'pending',
+        createdAt,
+      }
+      store.getState().applyDomainAction({
+        type: 'send_started',
+        conversationId: userId,
+        userMessage: optimisticMessage,
+      })
+
+      try {
+        const message = await api.sendPersistedMessage({
+          clientMessageId,
+          text: content,
+        })
+        store.getState().applyDomainAction({
+          type: 'persisted_message_sent',
+          conversationId: userId,
+          clientMessageId,
+          message,
+        })
+        return true
+      } catch (error) {
+        store.getState().applyDomainAction({
+          type: 'send_failed',
+          conversationId: userId,
           error: toAppError(error, 'REQUEST_FAILED'),
         })
         return false

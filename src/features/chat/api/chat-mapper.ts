@@ -3,6 +3,8 @@ import type {
   ConversationPage as ConversationPageDto,
   Message as MessageDto,
   MessagePage as MessagePageDto,
+  PersistedMessage as PersistedMessageDto,
+  PersistedMessagePage as PersistedMessagePageDto,
   Run as RunDto,
   SendMessageAccepted as SendMessageAcceptedDto,
 } from '@/generated/openapi/types'
@@ -53,6 +55,28 @@ export function toMessage(dto: MessageDto): Message {
 export function toMessagePage(dto: MessagePageDto): MessagePage {
   return {
     items: dto.items.map(toMessage),
+    ...(dto.nextCursor !== undefined ? { nextCursor: dto.nextCursor } : {}),
+  }
+}
+
+export function toPersistedMessage(dto: PersistedMessageDto): Message {
+  return {
+    id: dto.id,
+    conversationId: dto.conversationId,
+    role: dto.role,
+    content: {
+      type: dto.content.type,
+      text: dto.content.text,
+    },
+    status: dto.status,
+    createdAt: dto.createdAt,
+    completedAt: dto.completedAt,
+  }
+}
+
+export function toPersistedMessagePage(dto: PersistedMessagePageDto): MessagePage {
+  return {
+    items: dto.items.map(toPersistedMessage).reverse(),
     ...(dto.nextCursor !== undefined ? { nextCursor: dto.nextCursor } : {}),
   }
 }

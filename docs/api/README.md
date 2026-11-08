@@ -66,6 +66,21 @@ HTTP 状态码与业务错误码同时存在。客户端不得依赖文本判断
 
 SSE 不是数据事实源，最终消息和状态必须落库。
 
+## 登录与单条消息垂直切片
+
+当前后端基线先实现以下最小闭环：
+
+- `POST /auth/wx-login`：微信 code 登录并 upsert 用户；
+- `POST /auth/refresh`：轮换 refresh token；
+- `POST /auth/logout`：递增 token 版本并撤销旧 access token；
+- `GET /users/me`：验证当前用户；
+- `POST /messages`：写入当前用户默认会话的一条消息；
+- `GET /messages`：回读当前用户默认会话消息。
+
+`/messages` 是阶段一持久化接口，不创建 run、不返回
+`assistantMessageId`，也不代表 AI 回复已经实现。默认会话 ID 由服务端直接使用当前用户 ID，不接受客户端提交
+`userId`。相同 `clientMessageId` 和相同正文是幂等重试；相同 ID 对应不同正文时返回 `409`。
+
 ## 代码生成
 
 ```bash

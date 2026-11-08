@@ -101,6 +101,63 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/ServerError"
+  /api/v1/messages:
+    get:
+      tags: [Messages]
+      operationId: listPersistedMessages
+      summary: List messages in the authenticated user's default conversation
+      description: |
+        Stage-one vertical-slice endpoint. The default conversation identifier is
+        derived from the authenticated user and is never accepted from the client.
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Persisted message page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersistedMessagePageResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/ServerError"
+    post:
+      tags: [Messages]
+      operationId: persistMessage
+      summary: Persist one user message in the default conversation
+      description: |
+        Stage-one vertical-slice endpoint. It does not create a generation run or
+        imply an AI reply. The same clientMessageId with identical content is
+        idempotent; reusing it with different content returns 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePersistedMessageRequest"
+      responses:
+        "200":
+          description: Existing idempotent message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersistedMessageResponse"
+        "201":
+          description: Message persisted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersistedMessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/ServerError"
   /api/v1/conversations:
     get:
       tags: [Conversations]
@@ -516,12 +573,17 @@ components:
     WxLoginRequest:
       type: object
       additionalProperties: false
-      required: [code]
+      required: [code, privacyVersion]
       properties:
         code:
           type: string
           minLength: 1
           description: One-time code from Taro.login or wx.login
+        privacyVersion:
+          type: string
+          minLength: 1
+          maxLength: 32
+          description: Privacy agreement version accepted before login
     RefreshTokenRequest:
       type: object
       additionalProperties: false
@@ -674,6 +736,89 @@ components:
           type: string
           minLength: 1
           maxLength: 2000
+    CreatePersistedMessageRequest:
+      type: object
+      additionalProperties: false
+      required: [clientMessageId, content]
+      properties:
+        clientMessageId:
+          type: string
+          format: uuid
+        content:
+          $ref: "#/components/schemas/MessageContent"
+    PersistedMessage:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - clientMessageId
+        - conversationId
+        - role
+        - content
+        - status
+        - createdAt
+        - completedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientMessageId:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user]
+        content:
+          $ref: "#/components/schemas/MessageContent"
+        status:
+          type: string
+          enum: [completed]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+    PersistedMessageData:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message:
+          $ref: "#/components/schemas/PersistedMessage"
+    PersistedMessageResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/PersistedMessageData"
+    PersistedMessagePage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersistedMessage"
+        nextCursor:
+          type: string
+          description: Omitted or null when there are no more items
+    PersistedMessagePageResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponseBase"
+        - type: object
+          additionalProperties: false
+          required: [data]
+          properties:
+            data:
+              $ref: "#/components/schemas/PersistedMessagePage"
     Message:
       type: object
       additionalProperties: false

@@ -16,6 +16,8 @@ const { apiMock } = vi.hoisted(() => ({
     createConversation: vi.fn(),
     listMessages: vi.fn(),
     sendMessage: vi.fn(),
+    listPersistedMessages: vi.fn(),
+    sendPersistedMessage: vi.fn(),
     getRun: vi.fn(),
     cancelRun: vi.fn(),
     retryRun: vi.fn(),
@@ -158,5 +160,32 @@ describe('chatController', () => {
 
     expect(apiMock.cancelRun).toHaveBeenCalledWith(runId)
     expect(useChatStore.getState().runsByConversation[conversation.id]?.phase).toBe('cancelled')
+  })
+
+  it('persists a stage-one message without creating an assistant placeholder', async () => {
+    const persistedMessage: Message = {
+      ...userMessage,
+      id: 'message-server-1',
+      status: 'completed',
+      completedAt: userMessage.createdAt,
+    }
+    apiMock.sendPersistedMessage.mockResolvedValue(persistedMessage)
+
+    const controller = createChatController({
+      api: apiMock as unknown as ChatApi,
+      createMessageId: () => userMessage.id,
+      now: () => userMessage.createdAt,
+    })
+    const didAccept = await controller.sendPersistedText(conversation.id, '你好')
+
+    expect(didAccept).toBe(true)
+    expect(apiMock.sendPersistedMessage).toHaveBeenCalledWith({
+      clientMessageId: userMessage.id,
+      text: '你好',
+    })
+    expect(useChatStore.getState().messagesByConversation[conversation.id]).toEqual([
+      persistedMessage,
+    ])
+    expect(useChatStore.getState().runsByConversation[conversation.id]?.phase).toBe('idle')
   })
 })

@@ -1,6 +1,7 @@
 # 文档
 
 - [产品需求](./product/prd.md)
+- [技术架构](./architecture/technical-architecture.md)
 - [OpenAPI](./api/openapi.yaml)
 - [API 约定](./api/README.md)
 - [SSE 事件](./api/sse-events.md)

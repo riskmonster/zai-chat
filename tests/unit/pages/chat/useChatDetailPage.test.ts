@@ -5,11 +5,9 @@ import { useChatDetailPage } from '@/pages/chat/useChatDetailPage'
 
 const { controllerMock, detailModel, routerParams } = vi.hoisted(() => ({
   controllerMock: {
-    openConversation: vi.fn(),
-    startNewConversation: vi.fn(),
-    loadMessages: vi.fn(),
+    loadPersistedMessages: vi.fn(),
     retryGeneration: vi.fn(),
-    sendText: vi.fn().mockResolvedValue(true),
+    sendPersistedText: vi.fn().mockResolvedValue(true),
     stopGeneration: vi.fn(),
   },
   detailModel: {
@@ -27,7 +25,19 @@ const { controllerMock, detailModel, routerParams } = vi.hoisted(() => ({
 }))
 
 vi.mock('@tarojs/taro', () => ({
+  default: {
+    reLaunch: vi.fn(),
+  },
   useRouter: () => ({ params: routerParams }),
+}))
+
+vi.mock('@/features/auth/public', () => ({
+  useAuthUser: () => ({
+    id: '11111111-1111-4111-8111-111111111111',
+    nickname: '微信用户',
+    status: 'active',
+    createdAt: '2026-11-07T10:00:00.000Z',
+  }),
 }))
 
 vi.mock('@/features/chat/public', () => ({
@@ -42,18 +52,20 @@ describe('useChatDetailPage', () => {
     routerParams.prompt = '你好'
   })
 
-  it('owns route lifecycle and chat commands', async () => {
+  it('owns route lifecycle and persisted chat commands', async () => {
     const { result } = renderHook(() => useChatDetailPage())
 
     await waitFor(() => {
-      expect(controllerMock.openConversation).toHaveBeenCalledWith('conversation-1')
+      expect(controllerMock.loadPersistedMessages).toHaveBeenCalledWith(
+        '11111111-1111-4111-8111-111111111111',
+      )
     })
     expect(result.current.model.initialPrompt).toBe('你好')
 
     act(() => {
       result.current.actions.reloadMessages()
     })
-    expect(controllerMock.loadMessages).toHaveBeenCalledWith('conversation-1')
+    expect(controllerMock.loadPersistedMessages).toHaveBeenCalledTimes(2)
 
     act(() => {
       result.current.actions.retryGeneration()
@@ -68,6 +80,9 @@ describe('useChatDetailPage', () => {
     await act(async () => {
       await result.current.actions.sendText('继续')
     })
-    expect(controllerMock.sendText).toHaveBeenCalledWith('conversation-1', '继续')
+    expect(controllerMock.sendPersistedText).toHaveBeenCalledWith(
+      '11111111-1111-4111-8111-111111111111',
+      '继续',
+    )
   })
 })

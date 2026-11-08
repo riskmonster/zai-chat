@@ -3,6 +3,8 @@ import {
   conversationsConversationIdMessagesUsingPost,
   conversationsUsingGet,
   conversationsUsingPost,
+  messagesUsingGet,
+  messagesUsingPost,
   runsRunIdCancelUsingPost,
   runsRunIdRetryUsingPost,
   runsRunIdUsingGet,
@@ -11,6 +13,7 @@ import {
 import type {
   Conversation,
   ConversationPage,
+  Message,
   MessagePage,
   Run,
   SendMessageAccepted,
@@ -19,6 +22,8 @@ import {
   toConversation,
   toConversationPage,
   toMessagePage,
+  toPersistedMessage,
+  toPersistedMessagePage,
   toRun,
   toSendMessageAccepted,
 } from './chat-mapper'
@@ -45,6 +50,8 @@ export interface ChatApi {
     limit?: number
   }): Promise<MessagePage>
   sendMessage(input: SendMessageInput): Promise<SendMessageAccepted>
+  listPersistedMessages(input?: { cursor?: string; limit?: number }): Promise<MessagePage>
+  sendPersistedMessage(input: { clientMessageId: string; text: string }): Promise<Message>
   getRun(runId: string): Promise<Run>
   cancelRun(runId: string): Promise<Run>
   retryRun(runId: string): Promise<Run>
@@ -90,6 +97,27 @@ export const chatApi: ChatApi = {
       },
     })
     return toSendMessageAccepted(accepted)
+  },
+  async listPersistedMessages({ cursor, limit = 20 } = {}) {
+    const page = await messagesUsingGet({
+      params: {
+        limit,
+        ...(cursor !== undefined ? { cursor } : {}),
+      },
+    })
+    return toPersistedMessagePage(page)
+  },
+  async sendPersistedMessage({ clientMessageId, text }) {
+    const response = await messagesUsingPost({
+      body: {
+        clientMessageId,
+        content: {
+          type: 'text',
+          text,
+        },
+      },
+    })
+    return toPersistedMessage(response.message)
   },
   async getRun(runId) {
     return toRun(

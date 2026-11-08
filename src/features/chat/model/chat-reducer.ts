@@ -43,6 +43,12 @@ export type ChatDomainAction =
       assistantMessageId: string
       runId: string
     }
+  | {
+      type: 'persisted_message_sent'
+      conversationId: string
+      clientMessageId: string
+      message: Message
+    }
   | { type: 'send_failed'; conversationId: string; error: AppError }
   | { type: 'run_stopping'; conversationId: string }
   | { type: 'run_retrying'; conversationId: string }
@@ -200,6 +206,22 @@ export function chatDomainReducer(
         },
       )
     }
+    case 'persisted_message_sent':
+      return updateConversationMessages(
+        state,
+        action.conversationId,
+        (messages) =>
+          mergeMessages(
+            messages.filter((message) => message.id !== action.clientMessageId),
+            [action.message],
+          ),
+        {
+          runsByConversation: {
+            ...state.runsByConversation,
+            [action.conversationId]: createIdleRunState(),
+          },
+        },
+      )
     case 'send_failed': {
       const failedRun = state.runsByConversation[action.conversationId]
       return updateConversationMessages(

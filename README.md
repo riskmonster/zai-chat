@@ -12,7 +12,7 @@
 - Zustand
 - 构建 Vite 4.5.14
 - Vitest 5.1.0 + 测试 Vite 8.3.6
-- FastAPI + PostgreSQL（后端独立仓库）
+- FastAPI + SQLAlchemy 2 Async + asyncpg + PostgreSQL
 - OpenAPI 3.1 + SSE
 
 ## 开始
@@ -71,4 +71,9 @@ Library、SCSS、Prettier、Knip 和 Git hooks，详见
 - 已接入 Taroify 按需样式。
 - 已生成 OpenAPI 客户端。
 - 已实现微信 chunked SSE 传输、SSE parser 和增量 UTF-8 解码。
-- 尚未实现微信登录、FastAPI 服务、PostgreSQL 存储和真实模型回复。
+- 已实现微信 code 登录、JWT 会话、默认会话单条消息幂等写入和游标回读。
+- PostgreSQL 数据库 `zai-wp-chat` 及其 `users`、`messages` 表已由 Alembic 创建。
+- 完整会话、run、SSE 和真实模型回复仍保留给后续阶段。
+- 真实微信登录运行前需在后端 `.env` 配置 `WX_APP_SECRET`。
+
+后端启动、数据库迁移和测试命令见 [backend/README.md](./backend/README.md)。

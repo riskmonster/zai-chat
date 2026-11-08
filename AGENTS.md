@@ -67,6 +67,12 @@ pnpm test:run
 pnpm contract:check
 pnpm build:weapp
 pnpm build:h5
+
+cd backend
+.\.venv\Scripts\alembic.exe upgrade head
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check app tests alembic
+.\.venv\Scripts\pyright.exe --pythonpath .\.venv\Scripts\python.exe
 ```
 
 Windows 使用 `pnpm.cmd`。

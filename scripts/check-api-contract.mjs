@@ -23,6 +23,8 @@ for (const operationId of [
   'streamRunEvents',
   'cancelRun',
   'retryRun',
+  'listPersistedMessages',
+  'persistMessage',
 ]) {
   assert.match(
     openapi,

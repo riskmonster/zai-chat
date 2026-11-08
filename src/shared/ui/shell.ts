@@ -1,4 +1,5 @@
 export { default as Button } from '@taroify/core/button'
+export { default as Checkbox } from '@taroify/core/checkbox'
 export { default as Textarea } from '@taroify/core/textarea'
 export { default as ArrowUp } from '@taroify/icons/ArrowUp'
 export { default as Replay } from '@taroify/icons/Replay'

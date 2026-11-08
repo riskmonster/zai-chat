@@ -4,6 +4,7 @@ import { clearAuthSession, getAuthAccessToken } from '@/features/auth/public'
 import { configureApiClient } from '@/shared/api/openapi-request'
 
 import '@taroify/core/button/style/index.js'
+import '@taroify/core/checkbox/style/index.js'
 import '@taroify/core/textarea/style/index.js'
 import '@taroify/icons/style/index.js'
 import './app.scss'

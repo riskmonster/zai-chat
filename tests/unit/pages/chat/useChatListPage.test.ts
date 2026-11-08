@@ -5,7 +5,8 @@ import { useChatListPage } from '@/pages/chat/useChatListPage'
 
 const { controllerMock, didShowCallbackRef, model, navigateToMock } = vi.hoisted(() => ({
   controllerMock: {
-    loadConversations: vi.fn(),
+    loadDefaultConversation: vi.fn(),
+    loadPersistedMessages: vi.fn(),
     openConversation: vi.fn(),
   },
   didShowCallbackRef: { current: undefined as undefined | (() => void) },
@@ -27,7 +28,12 @@ vi.mock('@tarojs/taro', () => ({
 }))
 
 vi.mock('@/features/auth/public', () => ({
-  useHasSession: () => true,
+  useAuthUser: () => ({
+    id: '11111111-1111-4111-8111-111111111111',
+    nickname: '微信用户',
+    status: 'active',
+    createdAt: '2026-11-07T10:00:00.000Z',
+  }),
 }))
 
 vi.mock('@/features/chat/public', () => ({
@@ -45,19 +51,23 @@ describe('useChatListPage', () => {
     const { result } = renderHook(() => useChatListPage())
 
     act(() => didShowCallbackRef.current?.())
-    expect(controllerMock.loadConversations).toHaveBeenCalledOnce()
+    expect(controllerMock.loadDefaultConversation).toHaveBeenCalledWith(
+      '11111111-1111-4111-8111-111111111111',
+    )
 
     act(() => {
       result.current.actions.startNewConversation('帮我整理计划')
     })
     expect(navigateToMock).toHaveBeenCalledWith({
-      url: '/pages/chat/detail?prompt=%E5%B8%AE%E6%88%91%E6%95%B4%E7%90%86%E8%AE%A1%E5%88%92',
+      url: '/pages/chat/detail?prompt=%E5%B8%AE%E6%88%91%E6%95%B4%E7%90%86%E8%AE%A1%E5%88%92&conversationId=11111111-1111-4111-8111-111111111111',
     })
 
     act(() => {
       result.current.actions.openHistoryConversation('conversation-1')
     })
-    expect(controllerMock.openConversation).toHaveBeenCalledWith('conversation-1')
+    expect(controllerMock.loadPersistedMessages).toHaveBeenCalledWith(
+      '11111111-1111-4111-8111-111111111111',
+    )
     expect(navigateToMock).toHaveBeenLastCalledWith({
       url: '/pages/chat/detail?conversationId=conversation-1',
     })
@@ -65,6 +75,6 @@ describe('useChatListPage', () => {
     act(() => {
       result.current.actions.reloadConversations()
     })
-    expect(controllerMock.loadConversations).toHaveBeenCalledTimes(2)
+    expect(controllerMock.loadDefaultConversation).toHaveBeenCalledTimes(2)
   })
 })
